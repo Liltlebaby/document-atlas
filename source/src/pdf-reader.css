@@ -1,0 +1,12 @@
+.pdf-reader-backdrop{position:fixed;inset:0;z-index:2000;background:#12352fd1;display:flex;align-items:center;justify-content:center;padding:24px}
+.pdf-reader{display:flex;flex-direction:column;width:min(1240px,100%);height:calc(100dvh - 48px);background:white;border-radius:20px;overflow:hidden;box-shadow:0 20px 80px #0003;outline:none}
+.pdf-reader>header{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:18px 24px;border-bottom:1px solid #e4ece9}
+.pdf-reader h2{font-size:18px;margin:5px 0 0;overflow-wrap:anywhere}.pdf-reader>header>div{min-width:0}
+.pdf-reader nav{display:flex;align-items:center;gap:12px;padding:12px 24px;border-bottom:1px solid #e4ece9;flex-wrap:wrap}
+.pdf-reader nav>span{font-size:14px;font-variant-numeric:tabular-nums}.pdf-reader nav small{margin-left:auto;color:#517368;background:#eef7f2;border-radius:20px;padding:6px 12px}
+.pdf-reader-zoom{display:flex;gap:10px;align-items:center;margin-left:16px}.pdf-reader-zoom span{font-size:13px;width:42px;text-align:center}
+.pdf-reader-pages{position:relative;flex:1;min-height:0;overflow:auto;overflow-y:scroll;scrollbar-gutter:stable;background:#e8edeb;padding:24px;text-align:center}
+.pdf-reader canvas{display:block;margin:0 auto;background:white;box-shadow:0 3px 16px #0002;user-select:none;pointer-events:none}.pdf-reader canvas[hidden]{display:none}
+.pdf-reader-status{position:absolute;z-index:1;top:12px;left:50%;transform:translateX(-50%);display:flex;align-items:center;justify-content:center;gap:10px;color:#45675c;background:#fffef8ed;border-radius:20px;padding:8px 14px;margin:0;white-space:nowrap;pointer-events:none}.pdf-reader-error{padding:24px;color:#943b3b;background:#fff4f1;border-radius:12px}
+@media(max-width:600px){.pdf-reader-backdrop{padding:8px}.pdf-reader{height:calc(100dvh - 16px);border-radius:12px}.pdf-reader>header,.pdf-reader nav{padding:12px}.pdf-reader-zoom{margin-left:0}.pdf-reader nav{gap:8px}.pdf-reader nav small{display:none}}
+@media print{body:has(.pdf-reader-backdrop){display:none!important}}

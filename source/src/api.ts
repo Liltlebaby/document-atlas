@@ -1,0 +1,121 @@
+async function request(command: string, args: Record<string, unknown> = {}, signal?: AbortSignal) {
+  const response = await fetch(`/api/${command}`, {
+    method: 'POST', credentials: 'same-origin', signal,
+    headers: { 'Content-Type': 'application/json', 'X-Atlas-Request': '1' },
+    body: JSON.stringify(args),
+  });
+  if (!response.ok) {
+    const detail = await response.json().catch(() => null);
+    throw new Error(detail?.error || (response.status === 401 ? 'กรุณาเข้าสู่ระบบด้วยบัญชีที่ IT จัดให้' : `คำขอล้มเหลว (${response.status})`));
+  }
+  return response;
+}
+
+async function invoke<T>(command: string, args?: Record<string, unknown>): Promise<T> {
+  return (await request(command, args)).json() as Promise<T>;
+}
+
+export type WebSession = { username: string; role: 'viewer' | 'reviewer'; workspaceId: string };
+export const webSession = () => invoke<WebSession>('session');
+export const pdfPage = async (nodeId: string, page: number, signal: AbortSignal) => (await request('render_pdf_page', { nodeId, page }, signal)).blob();
+export const exportReviewCsv = async () => (await request('iso_export')).blob();
+export type Profile = { baseUrl: string; username: string; downloadDir: string; hasCredential: boolean };
+export type AtlasNode = { id: string; portal_id: string; kind: 'folder' | 'file'; name: string; path: string; active: boolean };
+export type Graph = { nodes: AtlasNode[]; edges: { source: string; target: string }[] };
+export type GraphPage = Graph & { hasMore: boolean };
+export type Plan = { nodeId: string; scope: string; items: AtlasNode[]; duplicateCount: number };
+export type Job = { id: string; status: string; total: number; completed: number; failed: number; createdAt: string };
+export type DownloadedDocument = { nodeId: string; name: string; path: string; filePath: string };
+export type Progress = { kind: 'scan' | 'download'; status: string; current: number; total: number; message: string };
+export type ScanSession = { id: string; status: 'running' | 'paused' | 'completed' | 'error' | 'pausing'; currentFolder: string; foldersDone: number; foldersPending: number; filesSeen: number; lastError: string; updatedAt: string; elapsedSeconds: number; retryAttempt: number; startedAt: string };
+export type Workspace = { id: string; name: string; active: boolean; baseUrl: string; username: string };
+export type WorkspaceDeletePreview = { workspaceId: string; name: string; isDefault: boolean; nodes: number; scanSessions: number; ragDocuments: number; downloadFiles: string[]; cacheFiles: number };
+export type ScanLog = { id: number; sessionId: string; level: string; message: string; createdAt: string };
+export type RagConfig = { modelId: string; modelPath: string; installed: boolean; provider: string; embeddingProvider: 'local'|'api'; apiUrl: string; apiModel: string; apiDimensions: number; hasApiKey: boolean; indexedDocuments: number };
+export type RagJob = { id: string; status: string; total: number; completed: number; failed: number; currentDocument: string; lastError: string; updatedAt: string };
+export type RagDocument = { nodeId: string; name: string; status: string; pageCount: number; emptyPages: number; chunkCount: number; warning: string; updatedAt: string };
+export type RagPageSummary = { page: number; chunkCount: number; characterCount: number; vectorCount: number };
+export type RagStoredChunk = { chunkId: number; page: number; text: string; hasEmbedding: boolean };
+export type RagDocumentDetail = RagDocument & { path: string; sha256: string; vectorCount: number; pages: RagPageSummary[] };
+export type IsoChatStatus = { ready: boolean; model: string; indexedDocuments: number; message: string };
+export type IsoChatCitation = { id: number; nodeId: string; name: string; path: string; page: number; text: string; chunkId: number };
+export type IsoChatAnswer = { requestId: string; answer: string; citations: IsoChatCitation[]; insufficientEvidence: boolean; model: string };
+export type IsoChatProgress = { requestId: string; workspaceId: string; stage: 'retrieving' | 'answering' };
+export type RagHit = { chunkId: number; nodeId: string; name: string; path: string; page: number; text: string; distance: number };
+export type RagStorage = { databasePath: string; pdfCachePath: string; indexedDocuments: number; chunks: number };
+export type IsoStatus = 'ACTIVE' | 'ARCHIVE' | 'DUPLICATE' | 'REVIEW';
+export type IsoDecision = 'pending' | 'approved' | 'rejected';
+export type IsoGroup = { id: number; label: string; deadline: string; departments: number; documents: number; downloaded: number; indexed: number; reviewed: number; projected: number; target: number };
+export type IsoDepartment = { id: string; group: number; memoTotal: number; found: number; downloaded: number; indexed: number; active: number; archive: number; duplicate: number; review: number; approved: number; rejected: number; pending: number; projected: number; target: number };
+export type IsoOverview = { branch: string; targetRatio: number; groups: IsoGroup[]; departments: IsoDepartment[] };
+export type IsoDocument = { nodeId: string; portalId: string; name: string; path: string; code: string; docType: string; revision: string; title: string; status: IsoStatus | ''; reason: string; related: string; cluster: string; mergeInto: string; isoClauses: string[]; source: string; protected: boolean; decision: IsoDecision; decisionNote: string; decidedBy: string; decidedAt: string; downloaded: boolean };
+export type IsoImportResult = { imported: number; skipped: number; resetDecisions: number };
+export type SimilarVerdict = 'duplicate' | 'contained' | 'contains' | 'related' | 'different';
+export type SimilarEvidence = { score: number; sourcePage: number; sourceText: string; otherPage: number; otherText: string };
+export type SimilarDoc = { nodeId: string; name: string; path: string; rank: number; forward: number; backward: number; verdict: SimilarVerdict; evidence: SimilarEvidence[] };
+export type SimilarityRun = { targets: number; indexedTargets: number; poolDocuments: number; poolChunks: number; pairs: number; seconds: number };
+export type AgentStage = 'starting' | 'reading' | 'judging' | 'done' | 'error';
+export type AgentFinished = { department: string; before: number; after: number; errors: number; minutes: number; at: string };
+export type AgentStatus = { department: string; group: number; engine: string; model: string; stage: AgentStage; batch: number; batches: number; docsDone: number; docsTotal: number; currentDocs: { code: string; title: string }[]; message: string; startedAt: string; updatedAt: string; finished: AgentFinished[] };
+type RawAgentStatus = { department: string; group: number; engine: string; model: string; stage: AgentStage; batch: number; batches: number; docs_done: number; docs_total: number; current_docs: { code: string; title: string }[]; message: string; started_at: string; updated_at: string; finished?: AgentFinished[] };
+const agentStatus = (raw: RawAgentStatus | null): AgentStatus | null => raw && ({
+  department: raw.department, group: raw.group, engine: raw.engine, model: raw.model, stage: raw.stage, batch: raw.batch, batches: raw.batches,
+  docsDone: raw.docs_done, docsTotal: raw.docs_total, currentDocs: raw.current_docs || [], message: raw.message, startedAt: raw.started_at, updatedAt: raw.updated_at, finished: raw.finished || [],
+});
+export const api = {
+  isoChatStatus: () => invoke<IsoChatStatus>('get_iso_chat_status'),
+  askIsoChat: (question: string, workspaceId: string, requestId: string) => invoke<IsoChatAnswer>('ask_iso_chat', { question, workspaceId, requestId }),
+  cancelIsoChat: (requestId: string) => invoke<void>('cancel_iso_chat', { requestId }),
+  getProfile: () => invoke<Profile>('get_profile'),
+  workspaces: () => invoke<Workspace[]>('list_workspaces'),
+  createWorkspace: (name: string) => invoke<Workspace[]>('create_workspace', { name }),
+  switchWorkspace: (workspaceId: string) => invoke<Profile>('switch_workspace', { workspaceId }),
+  previewWorkspaceDelete: (workspaceId: string) => invoke<WorkspaceDeletePreview>('preview_workspace_delete', { workspaceId }),
+  deleteWorkspace: (workspaceId: string, mode: 'scan_only'|'all_files') => invoke<Workspace[]>('delete_workspace', { workspaceId, mode }),
+  saveProfile: (input: Profile, password?: string) => invoke<Profile>('save_profile', { input, password: password || null }),
+  testConnection: () => invoke<string>('test_connection'),
+  scanSession: () => invoke<ScanSession | null>('get_scan_session'),
+  scanSessions: () => invoke<ScanSession[]>('list_scan_sessions'),
+  scanLogs: (sessionId: string) => invoke<ScanLog[]>('get_scan_logs', { sessionId }),
+  startScan: () => invoke<ScanSession>('start_scan'),
+  pauseScan: () => invoke<void>('pause_scan'),
+  resumeScan: (sessionId: string) => invoke<ScanSession>('resume_scan', { sessionId }),
+  search: (query: string, kind?: string) => invoke<AtlasNode[]>('search_nodes', { query, kind: kind || null }),
+  searchDownloaded: (query: string) => invoke<DownloadedDocument[]>('search_downloaded_documents', { query }),
+  openDownloaded: (nodeId: string) => invoke<string>('open_downloaded_document', { nodeId }),
+  graphRoots: () => invoke<Graph>('get_graph_roots'),
+  graphContext: (nodeId: string) => invoke<Graph>('get_graph_context', { nodeId }),
+  graphChildren: (folderId: string, offset: number) => invoke<GraphPage>('get_graph_children', { folderId, offset }),
+  plan: (nodeId: string, scope: string) => invoke<Plan>('plan_download', { nodeId, scope }),
+  download: (nodeId: string, scope: string) => invoke<string>('start_download', { nodeId, scope }),
+  cancelDownload: () => invoke<void>('cancel_download'),
+  jobs: () => invoke<Job[]>('list_jobs'),
+  ragConfig: () => invoke<RagConfig>('get_rag_config'),
+  installRagModel: (modelId: string, modelPath: string) => invoke<RagConfig>('install_rag_model', { modelId, modelPath }),
+  saveRagApi: (apiUrl: string, apiModel: string, apiKey?: string) => invoke<RagConfig>('save_rag_api', { apiUrl, apiModel, apiKey: apiKey || null }),
+  ragJob: () => invoke<RagJob | null>('get_rag_job'),
+  ragDocuments: () => invoke<RagDocument[]>('list_rag_documents'),
+  ragDocumentDetail: (nodeId: string) => invoke<RagDocumentDetail>('get_rag_document_detail', { nodeId }),
+  ragDocumentPage: (nodeId: string, page: number) => invoke<RagStoredChunk[]>('get_rag_document_page', { nodeId, page }),
+  startRagIndex: (nodeId: string, scope: string) => invoke<RagJob>('start_rag_index', { nodeId, scope }),
+  pauseRagIndex: () => invoke<void>('pause_rag_index'),
+  resumeRagIndex: (jobId: string) => invoke<RagJob>('resume_rag_index', { jobId }),
+  ragSearch: (query: string) => invoke<RagHit[]>('rag_search', { query }),
+  ragRelated: (chunkId: number) => invoke<RagHit[]>('rag_related', { chunkId }),
+  ragStorage: () => invoke<RagStorage>('get_rag_storage'),
+  readRagDocument: (nodeId: string) => invoke<ArrayBuffer | number[]>('read_rag_document', { nodeId }),
+  openRagDocument: (nodeId: string) => invoke<string>('open_rag_document', { nodeId }),
+  isoOverview: () => invoke<IsoOverview | null>('iso_overview'),
+  isoImportConfig: (path: string) => invoke<IsoOverview | null>('iso_import_config', { path }),
+  isoDocuments: (department: string) => invoke<IsoDocument[]>('iso_documents', { department }),
+  isoImportResults: (path: string) => invoke<IsoImportResult>('iso_import_results', { path }),
+  isoDecide: (nodeId: string, decision: IsoDecision, note: string, decidedBy: string) => invoke<void>('iso_decide', { nodeId, decision, note, decidedBy }),
+  isoExport: (path: string) => invoke<string>('iso_export', { path }),
+  isoDownload: (group: number) => invoke<string>('iso_start_download', { group }),
+  isoStartIndex: (group: number) => invoke<RagJob>('iso_start_index', { group }),
+  isoComputeSimilarity: (group: number) => invoke<SimilarityRun>('iso_compute_similarity', { group }),
+  isoSimilar: (nodeId: string) => invoke<SimilarDoc[]>('iso_similar', { nodeId }),
+  isoCheckNewDocument: (path: string) => invoke<SimilarDoc[]>('iso_check_new_document', { path }),
+  isoWriteCase: (dir: string, pdfPath: string, matches: SimilarDoc[]) => invoke<string>('iso_write_case', { dir, pdfPath, matches }),
+  isoAgentStatus: () => invoke<RawAgentStatus | null>('iso_agent_status').then(agentStatus),
+};

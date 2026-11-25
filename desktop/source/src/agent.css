@@ -1,0 +1,88 @@
+/* AI at work: painted ISO office background + live overlays */
+.agent-problem{margin-bottom:16px}
+.agent-stage{position:relative;margin-bottom:22px;border:4px solid #2a1a12;background:#2a1a12;box-shadow:6px 6px 0 #2a1a1233}
+.px-scene{display:block;width:100%;height:auto}
+.px-bg{image-rendering:pixelated}
+.px-bubble{position:absolute;top:1.6%;left:50%;transform:translateX(-50%);white-space:nowrap;max-width:70%;overflow:hidden;text-overflow:ellipsis;background:#fff8e7;border:3px solid #3b2a20;box-shadow:4px 4px 0 #2a1a1255;padding:9px 13px;font-size:12px;font-weight:700;line-height:1.55;color:#3b2a20;z-index:1}
+.px-bubble.sad{color:#b0362c}
+.px-bubble.sleep{color:#7a6a5a}
+.px-scene text{font-family:'Segoe UI',system-ui,sans-serif}
+.px-plate{font-size:17px;font-weight:900;fill:#4a2c18}
+.px-board-title{font-size:21px;font-weight:900;fill:#2a2e38}
+.px-board-item{font-size:13px;font-weight:700;fill:#7a6f66}
+.px-board-item.done{fill:#2a2e38}
+.px-note{font-size:15px;font-weight:900;fill:#3b2a20}
+.px-note.b{fill:#2f7a43;font-size:14px}
+.px-tray{font-size:12px;font-weight:900;fill:#3b2a20}
+.px-count{font-size:20px;font-weight:900;fill:#fbfbf8}
+.px-zzz{font-size:40px;font-weight:900;fill:#fff8e7;stroke:#3b2a20;stroke-width:3px;paint-order:stroke;animation:px-float 2s steps(4,end) infinite}
+.px-shelf-glow{animation:px-blink 1.2s steps(2,end) infinite}
+.px-arrow{animation:px-bounce .8s steps(2,end) infinite}
+.px-think{animation:px-blink 1.4s steps(2,end) infinite}
+.px-hop{animation:px-hop .5s steps(2,end) infinite}
+.px-confetti rect{animation:px-confetti 1.6s steps(8,end) infinite}
+.px-confetti rect:nth-child(odd){animation-delay:.4s}
+
+/* the agent: chair → aisle → department shelf → pick a binder → back along the aisle → chair → read */
+.px-walker{transform:translate(var(--seat-x),var(--seat-y))}
+.px-walker.happy{transform:translate(430px,296px)}
+/* one trip per new batch (11 s, see TRIP_MS in Agent.tsx): chair → aisle → shelf → pick a binder → aisle → chair */
+.px-walker.walk{animation:px-trip 11s linear 1 forwards}
+.px-reading{animation:px-breathe 2.4s steps(2,end) infinite}
+.px-reach,.px-bob{animation:px-hop .45s steps(2,end) infinite}
+.f-up{opacity:0;animation:px-vis-up 11s step-end 1 forwards}
+.f-out{opacity:0;animation:px-vis-out 11s step-end 1 forwards}
+.f-reach{opacity:0;animation:px-vis-reach 11s step-end 1 forwards}
+.f-back{opacity:0;animation:px-vis-back 11s step-end 1 forwards}
+.f-down{opacity:0;animation:px-vis-down 11s step-end 1 forwards}
+.px-flip-out{transform:scaleX(var(--out));transform-box:fill-box;transform-origin:center}
+.px-flip-back{transform:scaleX(var(--back));transform-box:fill-box;transform-origin:center}
+.sub-a{animation:px-sub-a .45s step-end infinite}
+.sub-b{animation:px-sub-b .45s step-end infinite}
+
+@keyframes px-trip{
+  0%{transform:translate(var(--seat-x),var(--seat-y))}
+  8%{transform:translate(var(--seat-x),var(--aisle-y))}
+  38%,50%{transform:translate(var(--shelf-x),var(--aisle-y))}
+  80%{transform:translate(var(--seat-x),var(--aisle-y))}
+  100%{transform:translate(var(--seat-x),var(--seat-y))}}
+@keyframes px-vis-up{0%{opacity:1}8%{opacity:0}}
+@keyframes px-vis-out{0%{opacity:0}8%{opacity:1}38%{opacity:0}}
+@keyframes px-vis-reach{0%{opacity:0}38%{opacity:1}50%{opacity:0}}
+@keyframes px-vis-back{0%{opacity:0}50%{opacity:1}80%{opacity:0}}
+@keyframes px-vis-down{0%{opacity:0}80%{opacity:1}100%{opacity:1}}
+@keyframes px-breathe{0%{transform:translateY(0)}50%{transform:translateY(-1.5px)}}
+@keyframes px-sub-a{0%{opacity:1}50%{opacity:0}}
+@keyframes px-sub-b{0%{opacity:0}50%{opacity:1}}
+@keyframes px-bounce{0%{transform:translateY(0)}50%{transform:translateY(6px)}}
+@keyframes px-blink{0%{opacity:1}50%{opacity:.3}}
+@keyframes px-float{0%{transform:translateY(0);opacity:.5}50%{opacity:1}100%{transform:translateY(-24px);opacity:.2}}
+@keyframes px-hop{0%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes px-confetti{0%{transform:translateY(0);opacity:1}100%{transform:translateY(140px);opacity:0}}
+
+/* pixel cards */
+.agent-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:20px}
+.px-card{background:#fff8e7;border:3px solid #3b2a20;box-shadow:5px 5px 0 #2a1a1233;min-width:0;overflow:hidden}
+.px-card-head{display:flex;justify-content:space-between;align-items:center;background:#5b3a24;color:#fff8e7;padding:8px 14px}
+.px-card-head h2{font-size:13px;margin:0;letter-spacing:.3px}
+.px-card-sub{font-size:11px;color:#7a6a5a;margin:10px 16px}
+.agent-now{padding:0 16px 16px}
+.agent-now-dept{display:flex;align-items:baseline;gap:10px;margin-bottom:10px}
+.agent-now-dept strong{font-size:26px;letter-spacing:-.4px;color:#3b2a20}
+.agent-now-dept small{font-size:11px;color:#7a6a5a;font-weight:700}
+.px-progress{height:12px;background:#ead9b8;border:2px solid #3b2a20;padding:1px}
+.px-progress span{display:block;height:100%;background:repeating-linear-gradient(90deg,#4f9a62 0 6px,#3f8a52 6px 8px);transition:width .6s steps(10,end)}
+.agent-now-stats{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px;font-size:11px;color:#6b5a4a}
+.agent-now-stats span{display:inline-flex;align-items:center;gap:4px}
+.agent-now-stats b{color:#3b2a20;font-variant-numeric:tabular-nums}
+.agent-stale{font-size:11px;color:#b0362c;margin:10px 0 0;font-weight:700}
+.agent-docs{display:flex;flex-wrap:wrap;gap:5px;margin-top:12px}
+.agent-docs span{font-size:10px;font-weight:700;color:#fff8e7;background:#3f6fb5;padding:3px 7px;box-shadow:2px 2px 0 #2a1a1255}
+.agent-list{border-top:2px solid #ead9b8;max-height:260px;overflow:auto}
+.agent-row{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:9px 16px;border-bottom:2px dashed #ead9b8;font-size:12px;color:#5b4a3a}
+.agent-row strong{color:#3b2a20}
+.agent-row span{text-align:right;font-variant-numeric:tabular-nums}
+.agent-row b{color:#2f7a43}
+.agent-row small{grid-column:1/-1;font-size:10px;color:#8a7a6a}
+@media(max-width:1100px){.agent-grid{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.agent-page *{animation:none!important;transition:none!important}.px-walker{transform:translate(var(--seat-x),var(--seat-y))!important}.f-up,.f-out,.f-reach,.f-back{opacity:0}.f-down{opacity:1}}

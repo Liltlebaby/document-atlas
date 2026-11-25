@@ -1,0 +1,12 @@
+node_modules/
+dist/
+target/
+data/
+accounts.json
+server-config.json
+server-config.lan.json
+*.pfx
+*.credential.xml
+*.sqlite
+*.log
+tools/

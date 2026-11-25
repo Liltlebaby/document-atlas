@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@roberttlange/headless": "0.6.1"
+  }
+}
