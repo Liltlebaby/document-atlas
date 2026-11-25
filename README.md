@@ -2,7 +2,19 @@
 
 An internal tool that makes a factory's ISO document library searchable and easier to clean up. It scans the company's document portal, indexes every PDF locally with a multilingual embedding model, and gives staff semantic search, question answering with page references, a PDF reader and a review workflow for duplicate or outdated documents. The delivered index covered about 1,900 documents (about 26,000 text chunks), all processed on the company's own server. It was handed over to the factory in November 2026.
 
-> **No screenshots.** Document Atlas only runs against the company's internal documents, so this repository contains the source code and no data, index or document content.
+[![Document Atlas with the delivered index: review dashboard, document search, RAG inspector and PDF reader (document text blurred)](docs/media/iso-preview.gif)](docs/media/iso-demo.mp4)
+
+*The delivered system running against its real index of 1,920 documents. Select the preview for the 35-second walkthrough (MP4). Passage text and PDF pages are blurred. The repository itself contains source code only, with no documents, index or credentials.*
+
+![ISO review dashboard: documents per department grouped by size, proposed ACTIVE / ARCHIVE / DUPLICATE / REVIEW counts, the target to keep, and indexing progress](docs/media/iso-review.png)
+
+*Review dashboard. Departments are grouped by document count, each with a deadline and a target of 20% of the original library. The system only proposes. Reviewers approve each document, and nothing is deleted on the portal.*
+
+![Document search for "document control and revision" returning the matching procedure in four branches](docs/media/iso-search.png)
+
+![RAG inspector for one document: index status, 10 PDF pages, 32 chunks all with vectors, and the chunk list (text blurred)](docs/media/iso-rag.png)
+
+*The RAG inspector shows how one document was indexed: pages, chunks, vectors and the text of each chunk, blurred here. The PDF reader renders each page on the server and checks the file's SHA-256 against the indexed version.*
 
 ## How it works
 
